@@ -1126,6 +1126,27 @@ async def get_user_work_experience(user_id: str):
         logger.error(f"Error getting work experience: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.delete("/api/users/{user_id}/work-experience/{work_id}")
+async def delete_work_experience(user_id: str, work_id: str):
+    """Delete a work experience entry"""
+    try:
+        # Convert IDs to int
+        user_id_int = int(user_id)
+        work_id_int = int(work_id)
+        
+        # Delete the work experience
+        success = await user_profile_service.delete_work_experience(work_id_int)
+        
+        if success:
+            return {"success": True, "message": "Work experience deleted successfully"}
+        else:
+            raise HTTPException(status_code=404, detail="Work experience not found")
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid ID format")
+    except Exception as e:
+        logger.error(f"Error deleting work experience: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 @app.post("/api/users/{user_id}/education", response_model=Education)
 async def add_education(user_id: str, education_data: EducationCreate):
     """Add education to a user"""

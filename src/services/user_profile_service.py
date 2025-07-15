@@ -258,7 +258,20 @@ class UserProfileService:
         """Get all skills for a user"""
         try:
             result = self.supabase.table("user_skills").select("*, skills(*)").eq("user_id", user_id).execute()
-            return [UserSkill(**skill) for skill in result.data]
+            # Transform the data to match the UserSkill model structure
+            skills_data = []
+            for skill_item in result.data:
+                # Transform 'skills' key to 'skill' key to match UserSkill model
+                if 'skills' in skill_item:
+                    skill_item['skill'] = skill_item.pop('skills')
+                
+                # Remove extra fields that might cause model validation issues
+                if 'updated_at' in skill_item:
+                    skill_item.pop('updated_at')
+                
+                skills_data.append(skill_item)
+            
+            return [UserSkill(**skill) for skill in skills_data]
         except Exception as e:
             logger.error(f"Error getting user skills: {e}")
             raise
@@ -288,7 +301,14 @@ class UserProfileService:
     async def add_work_experience(self, work_data: WorkExperienceCreate) -> WorkExperience:
         """Add work experience to a user"""
         try:
-            result = self.supabase.table("work_experience").insert(work_data.model_dump()).execute()
+            # Convert date objects to strings for JSON serialization
+            data_dict = work_data.model_dump()
+            if data_dict.get("start_date"):
+                data_dict["start_date"] = data_dict["start_date"].isoformat()
+            if data_dict.get("end_date"):
+                data_dict["end_date"] = data_dict["end_date"].isoformat()
+            
+            result = self.supabase.table("work_experience").insert(data_dict).execute()
             return WorkExperience(**result.data[0])
         except Exception as e:
             logger.error(f"Error adding work experience: {e}")
@@ -328,7 +348,14 @@ class UserProfileService:
     async def add_education(self, education_data: EducationCreate) -> Education:
         """Add education to a user"""
         try:
-            result = self.supabase.table("education").insert(education_data.model_dump()).execute()
+            # Convert date objects to strings for JSON serialization
+            data_dict = education_data.model_dump()
+            if data_dict.get("start_date"):
+                data_dict["start_date"] = data_dict["start_date"].isoformat()
+            if data_dict.get("end_date"):
+                data_dict["end_date"] = data_dict["end_date"].isoformat()
+            
+            result = self.supabase.table("education").insert(data_dict).execute()
             return Education(**result.data[0])
         except Exception as e:
             logger.error(f"Error adding education: {e}")

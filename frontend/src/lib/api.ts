@@ -370,6 +370,13 @@ export const userProfileAPI = {
     });
   },
 
+  // Delete work experience
+  async deleteWorkExperience(userId: number, workId: number): Promise<{success: boolean; message: string}> {
+    return apiCall<{success: boolean; message: string}>(`/api/users/${userId}/work-experience/${workId}`, {
+      method: 'DELETE',
+    });
+  },
+
   // Get user education
   async getUserEducation(userId: number): Promise<Education[]> {
     return apiCall<Education[]>(`/api/users/${userId}/education`);

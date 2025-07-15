@@ -58,13 +58,28 @@ export default function ProfilePage() {
     }
   };
 
+  const sanitizeFileName = (fileName: string): string => {
+    // Remove file extension and sanitize the name
+    const nameWithoutExtension = fileName.replace(/\.[^/.]+$/, '');
+    // Replace special characters with underscores and limit length
+    const sanitized = nameWithoutExtension
+      .replace(/[^a-zA-Z0-9\s\-_]/g, '_')
+      .replace(/\s+/g, '_')
+      .substring(0, 100);
+    return sanitized || 'resume';
+  };
+
   const handleUploadResume = async () => {
     if (!selectedFile || !userId) return;
 
     try {
       console.log('Uploading resume for userId:', userId, 'Type:', typeof userId);
       console.log('Resume details:', selectedFile.name, 'Size:', selectedFile.size, 'Type:', selectedFile.type);
-      const resume = await userProfileAPI.uploadResume(userId, selectedFile, selectedFile.name);
+      
+      // Sanitize the file name for display
+      const sanitizedName = sanitizeFileName(selectedFile.name);
+      
+      const resume = await userProfileAPI.uploadResume(userId, selectedFile, sanitizedName);
       console.log('Resume uploaded successfully:', resume);
       // Refresh profile to show new resume
       await loadUserProfile(userId);
@@ -144,10 +159,26 @@ export default function ProfilePage() {
   };
 
   const handleRemoveExperience = async (expId: number) => {
-    // TODO: Implement experience removal
-    console.log('Remove experience:', expId);
-    setSaveMessage('Experience removal functionality coming soon!');
-    setTimeout(() => setSaveMessage(''), 3000);
+    if (!userId) return;
+    
+    try {
+      setSaving(true);
+      setSaveMessage('Deleting work experience...');
+      
+      await userProfileAPI.deleteWorkExperience(userId, expId);
+      
+      // Refresh profile to show updated data
+      await loadUserProfile(userId);
+      
+      setSaveMessage('Work experience deleted successfully!');
+      setTimeout(() => setSaveMessage(''), 3000);
+    } catch (error) {
+      console.error('Error deleting work experience:', error);
+      setSaveMessage(`Error deleting work experience: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      setTimeout(() => setSaveMessage(''), 5000);
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleRemoveEducation = async (eduId: number) => {
@@ -258,8 +289,16 @@ export default function ProfilePage() {
     return "Let's build your profile to find great opportunities!";
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString();
+  const formatDate = (dateInput: string | Date | null | undefined) => {
+    if (!dateInput) return '';
+    
+    try {
+      const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
+      if (isNaN(date.getTime())) return '';
+      return date.toLocaleDateString();
+    } catch (error) {
+      return '';
+    }
   };
 
   if (loading) {
@@ -610,10 +649,19 @@ export default function ProfilePage() {
                 <div className="space-y-3">
                   {profile.resumes.map((resume) => (
                     <div key={resume.id} className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
-                                              <div>
-                          <p className="text-white font-medium">{resume.name}</p>
-                          <p className="text-gray-400 text-sm">Uploaded: {formatDate(resume.created_at)}</p>
-                        </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-white font-medium truncate" title={resume.name}>
+                          {resume.name}
+                        </p>
+                        <p className="text-gray-400 text-sm">
+                          Uploaded: {formatDate(resume.created_at)}
+                          {resume.file_size && (
+                            <span className="ml-2">
+                              ({Math.round(resume.file_size / 1024)} KB)
+                            </span>
+                          )}
+                        </p>
+                      </div>
                       <div className="flex gap-2">
                         {resume.is_primary && (
                           <span className="px-2 py-1 bg-green-500 text-white text-xs rounded">Primary</span>
@@ -658,7 +706,7 @@ export default function ProfilePage() {
                   {profile.skills.map((skill) => (
                     <div key={skill.id} className="relative group">
                       <span className="px-3 py-1 bg-blue-500/20 text-blue-300 rounded border border-blue-500/30 flex items-center">
-                        {skill.skill?.name || 'Unknown'} ({skill.years_of_experience || 0} years)
+                        {skill.skill?.name || 'Unknown'}
                         {editing && (
                           <button
                             onClick={() => handleRemoveSkill(skill.id)}

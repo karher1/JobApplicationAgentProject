@@ -1,0 +1,89 @@
+{
+  "company": "stripe",
+  "job_titles": [
+    "Software Engineer"
+  ],
+  "locations": [
+    "Remote"
+  ],
+  "max_results": 5,
+  "remote_only": true,
+  "timestamp": "2025-07-15T17:19:42.550688",
+  "jobs": [
+    {
+      "id": null,
+      "title": "Data Software Engineer, Support Data Foundations",
+      "company": "Stripe",
+      "location": "Remote in United States",
+      "url": "https://stripe.com/jobs/listing/data-software-engineer-support-data-foundations/6594794",
+      "job_board": "Stripe",
+      "posted_date": null,
+      "salary_range": null,
+      "job_type": null,
+      "remote_option": "Remote",
+      "description_snippet": "Department: Infrastructure & Corporate Tech",
+      "created_at": null,
+      "updated_at": null
+    },
+    {
+      "id": null,
+      "title": "Data Software Engineer, Support Data Foundations",
+      "company": "Stripe",
+      "location": "Toronto",
+      "url": "https://stripe.com/jobs/listing/data-software-engineer-support-data-foundations/6594794",
+      "job_board": "Stripe",
+      "posted_date": null,
+      "salary_range": null,
+      "job_type": null,
+      "remote_option": "On-site",
+      "description_snippet": "Department: Infrastructure & Corporate Tech",
+      "created_at": null,
+      "updated_at": null
+    },
+    {
+      "id": null,
+      "title": "Data Software Engineer, Support Data Foundations",
+      "company": "Stripe",
+      "location": "Remote in Canada",
+      "url": "https://stripe.com/jobs/listing/data-software-engineer-support-data-foundations/6594794",
+      "job_board": "Stripe",
+      "posted_date": null,
+      "salary_range": null,
+      "job_type": null,
+      "remote_option": "Remote",
+      "description_snippet": "Department: Infrastructure & Corporate Tech",
+      "created_at": null,
+      "updated_at": null
+    },
+    {
+      "id": null,
+      "title": "Data Software Engineer, Support Data Foundations",
+      "company": "Stripe",
+      "location": "Chicago",
+      "url": "https://stripe.com/jobs/listing/data-software-engineer-support-data-foundations/6594794",
+      "job_board": "Stripe",
+      "posted_date": null,
+      "salary_range": null,
+      "job_type": null,
+      "remote_option": "On-site",
+      "description_snippet": "Department: Infrastructure & Corporate Tech",
+      "created_at": null,
+      "updated_at": null
+    },
+    {
+      "id": null,
+      "title": "Software Engineer",
+      "company": "Stripe",
+      "location": "Toronto",
+      "url": "https://stripe.com/jobs/listing/software-engineer/5644613",
+      "job_board": "Stripe",
+      "posted_date": null,
+      "salary_range": null,
+      "job_type": null,
+      "remote_option": "On-site",
+      "description_snippet": "Department: Connect",
+      "created_at": null,
+      "updated_at": null
+    }
+  ]
+}

@@ -36,6 +36,11 @@ class SkillCategory(str, Enum):
     TOOL = "tool"
     LANGUAGE = "language"
     SOFT_SKILL = "soft_skill"
+    DATABASE = "database"
+    VERSION_CONTROL = "version_control"
+    CLOUD = "cloud"
+    DEVOPS = "devops"
+    RUNTIME = "runtime"
 
 class ApplicationStatus(str, Enum):
     APPLIED = "applied"
@@ -205,7 +210,7 @@ class WorkExperienceBase(BaseModel):
     is_current: bool = False
     description: Optional[str] = None
     achievements: List[str] = Field(default_factory=list)
-    technologies_used: List[str] = Field(default_factory=list)
+    # technologies_used: List[str] = Field(default_factory=list)  # TODO: Add back when database column is created
 
 class WorkExperienceCreate(WorkExperienceBase):
     user_id: int
@@ -219,7 +224,7 @@ class WorkExperienceUpdate(BaseModel):
     is_current: Optional[bool] = None
     description: Optional[str] = None
     achievements: Optional[List[str]] = None
-    technologies_used: Optional[List[str]] = None
+    # technologies_used: Optional[List[str]] = None  # TODO: Add back when database column is created
 
 class WorkExperience(WorkExperienceBase):
     id: int

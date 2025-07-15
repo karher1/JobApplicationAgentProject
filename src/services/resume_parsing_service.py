@@ -4,7 +4,7 @@ import asyncio
 from typing import List, Optional, Dict, Any
 from pathlib import Path
 import re
-from datetime import datetime
+from datetime import datetime, date
 
 from src.models.user_profile import (
     WorkExperience, WorkExperienceCreate,
@@ -262,8 +262,8 @@ class ResumeParsingService:
                     if not job_title and len(lines) > 1:
                         job_title = lines[1]
             
-            # Extract dates
-            date_pattern = r'(\d{1,2}/\d{2,4}|\d{4}|\w+\s+\d{4})'
+            # Extract dates using improved parsing - prioritize month-year over year-only
+            date_pattern = r'(\w+\s+\d{4}|\d{1,2}/\d{2,4}|\d{4})'
             dates = re.findall(date_pattern, entry)
             
             start_date = None
@@ -271,9 +271,17 @@ class ResumeParsingService:
             is_current = False
             
             if dates:
-                start_date = dates[0]
+                # Use the improved date parsing method
+                start_date = self._parse_date_string(dates[0])
+                if start_date is None:
+                    # If parsing fails, keep the original string for now
+                    start_date = dates[0]
+                    
                 if len(dates) > 1:
-                    end_date = dates[-1]
+                    end_date = self._parse_date_string(dates[-1], is_end_date=True)
+                    if end_date is None:
+                        # If parsing fails, keep the original string for now
+                        end_date = dates[-1]
                 elif 'present' in entry.lower() or 'current' in entry.lower():
                     is_current = True
             
@@ -285,11 +293,16 @@ class ResumeParsingService:
             
             description = '\n'.join(description_lines) if description_lines else ""
             
+            # Convert date objects back to strings for JSON serialization
+            from datetime import date
+            start_date_str = start_date.isoformat() if isinstance(start_date, date) else start_date
+            end_date_str = end_date.isoformat() if isinstance(end_date, date) else end_date
+            
             return {
                 "company_name": company_name,
                 "job_title": job_title,
-                "start_date": start_date,
-                "end_date": end_date,
+                "start_date": start_date_str,
+                "end_date": end_date_str,
                 "is_current": is_current,
                 "description": description,
                 "achievements": [],
@@ -350,8 +363,8 @@ class ResumeParsingService:
                     except ValueError:
                         pass
             
-            # Extract dates
-            date_pattern = r'(\d{1,2}/\d{2,4}|\d{4}|\w+\s+\d{4})'
+            # Extract dates using improved parsing - prioritize month-year over year-only
+            date_pattern = r'(\w+\s+\d{4}|\d{1,2}/\d{2,4}|\d{4})'
             dates = re.findall(date_pattern, entry)
             
             start_date = None
@@ -359,18 +372,24 @@ class ResumeParsingService:
             is_current = False
             
             if dates:
-                start_date = dates[0]
+                # Use the improved date parsing method
+                start_date = self._parse_date_string(dates[0])
                 if len(dates) > 1:
-                    end_date = dates[-1]
+                    end_date = self._parse_date_string(dates[-1], is_end_date=True)
                 elif 'present' in entry.lower() or 'current' in entry.lower():
                     is_current = True
+            
+            # Convert date objects back to strings for JSON serialization
+            from datetime import date
+            start_date_str = start_date.isoformat() if isinstance(start_date, date) else start_date
+            end_date_str = end_date.isoformat() if isinstance(end_date, date) else end_date
             
             return {
                 "institution_name": institution_name,
                 "degree": degree,
                 "field_of_study": field_of_study,
-                "start_date": start_date,
-                "end_date": end_date,
+                "start_date": start_date_str,
+                "end_date": end_date_str,
                 "is_current": is_current,
                 "gpa": gpa,
                 "description": ""
@@ -406,6 +425,93 @@ class ResumeParsingService:
         
         return contact_info
     
+    def _parse_date_string(self, date_str: str, is_end_date: bool = False) -> date:
+        """Parse various date string formats into date objects"""
+        if not date_str:
+            return None
+        
+        from datetime import date
+        import re
+        
+        # Clean up the date string
+        date_str = date_str.strip()
+        
+        try:
+            # Handle "Month Year" format (e.g., "March 2024", "July 2022")
+            month_year_match = re.match(r'(\w+)\s+(\d{4})', date_str)
+            if month_year_match:
+                month_name, year = month_year_match.groups()
+                year = int(year)
+                
+                # Map month names to numbers
+                month_map = {
+                    'january': 1, 'jan': 1, 'february': 2, 'feb': 2, 'march': 3, 'mar': 3,
+                    'april': 4, 'apr': 4, 'may': 5, 'june': 6, 'jun': 6, 'july': 7, 'jul': 7,
+                    'august': 8, 'aug': 8, 'september': 9, 'sep': 9, 'october': 10, 'oct': 10,
+                    'november': 11, 'nov': 11, 'december': 12, 'dec': 12
+                }
+                
+                month = month_map.get(month_name.lower())
+                if month:
+                    # For end dates, use last day of month; for start dates, use first day
+                    if is_end_date:
+                        # Get last day of month
+                        if month == 12:
+                            last_day = 31
+                        elif month in [4, 6, 9, 11]:
+                            last_day = 30
+                        elif month == 2:
+                            # Simple leap year check
+                            last_day = 29 if year % 4 == 0 and (year % 100 != 0 or year % 400 == 0) else 28
+                        else:
+                            last_day = 31
+                        return date(year, month, last_day)
+                    else:
+                        return date(year, month, 1)
+            
+            # Handle year-only format (e.g., "2024")
+            if len(date_str) == 4 and date_str.isdigit():
+                year = int(date_str)
+                if is_end_date:
+                    return date(year, 12, 31)
+                else:
+                    return date(year, 1, 1)
+            
+            # Handle MM/DD/YYYY or MM/YYYY format
+            if '/' in date_str:
+                parts = date_str.split('/')
+                if len(parts) == 3:  # MM/DD/YYYY
+                    month, day, year = map(int, parts)
+                    return date(year, month, day)
+                elif len(parts) == 2:  # MM/YYYY
+                    month, year = map(int, parts)
+                    if is_end_date:
+                        # Get last day of month
+                        if month in [4, 6, 9, 11]:
+                            day = 30
+                        elif month == 2:
+                            day = 29 if year % 4 == 0 and (year % 100 != 0 or year % 400 == 0) else 28
+                        else:
+                            day = 31
+                        return date(year, month, day)
+                    else:
+                        return date(year, month, 1)
+            
+            # If all else fails, try to extract year and use that
+            year_match = re.search(r'(\d{4})', date_str)
+            if year_match:
+                year = int(year_match.group(1))
+                if is_end_date:
+                    return date(year, 12, 31)
+                else:
+                    return date(year, 1, 1)
+        
+        except (ValueError, TypeError) as e:
+            logger.warning(f"Could not parse date string '{date_str}': {e}")
+        
+        # Return None for unparseable dates (don't use fallback)
+        return None
+    
     async def populate_user_profile_from_resume(self, user_id: int, parsed_data: Dict[str, Any], user_profile_service) -> Dict[str, Any]:
         """Populate user profile with parsed resume data"""
         try:
@@ -421,12 +527,13 @@ class ResumeParsingService:
             if parsed_data.get("skills"):
                 for skill_name in parsed_data["skills"]:
                     try:
-                        skill_request = {
-                            "skill_name": skill_name,
-                            "proficiency_level": "intermediate",
-                            "years_of_experience": None,
-                            "is_highlighted": False
-                        }
+                        from src.models.user_profile import SkillAddRequest
+                        skill_request = SkillAddRequest(
+                            skill_name=skill_name,
+                            proficiency_level="intermediate",
+                            years_of_experience=None,
+                            is_highlighted=False
+                        )
                         await user_profile_service.add_skill_to_user(user_id, skill_request)
                         results["skills_added"] += 1
                     except Exception as e:
@@ -434,49 +541,75 @@ class ResumeParsingService:
             
             # Add work experience
             if parsed_data.get("work_experience"):
+                # Get existing work experiences to check for duplicates
+                try:
+                    existing_experiences = await user_profile_service.get_user_work_experience(user_id)
+                    existing_set = set()
+                    for exp in existing_experiences:
+                        # Create a key for duplicate detection (company + job_title + start_date)
+                        key = (exp.company_name.lower().strip(), exp.job_title.lower().strip(), str(exp.start_date))
+                        existing_set.add(key)
+                except Exception as e:
+                    logger.warning(f"Could not get existing work experiences for duplicate check: {e}")
+                    existing_set = set()
+                
                 for exp_data in parsed_data["work_experience"]:
                     try:
                         from datetime import date
                         
-                        # Use a default date if start_date is None (required field)
-                        start_date = exp_data.get("start_date")
-                        if start_date is None:
-                            start_date = date(2020, 1, 1)  # Default date
-                        elif isinstance(start_date, str):
-                            # Try to parse string date (basic implementation)
+                        # Use the already-parsed dates from extraction (they're already in ISO format)
+                        from datetime import date, datetime
+                        
+                        start_date_str = exp_data.get("start_date")
+                        if start_date_str:
                             try:
-                                # Handle various date formats
-                                if len(start_date) == 4:  # Year only
-                                    start_date = date(int(start_date), 1, 1)
-                                else:
-                                    start_date = date(2020, 1, 1)  # Fallback
-                            except:
-                                start_date = date(2020, 1, 1)  # Fallback
+                                # Parse ISO format date string (YYYY-MM-DD) to date object
+                                start_date = datetime.fromisoformat(start_date_str).date()
+                            except (ValueError, TypeError):
+                                logger.warning(f"Could not parse start_date '{start_date_str}' for work experience: {exp_data.get('company_name', 'Unknown')} - {exp_data.get('job_title', 'Unknown')}. Using fallback date.")
+                                # Use a reasonable fallback date (current year - 1)
+                                current_year = date.today().year
+                                start_date = date(current_year - 1, 1, 1)
+                        else:
+                            start_date = None
                         
                         # Handle end_date similarly but it's optional
-                        end_date = exp_data.get("end_date")
-                        if isinstance(end_date, str):
+                        end_date_str = exp_data.get("end_date")
+                        if end_date_str:
                             try:
-                                if len(end_date) == 4:  # Year only
-                                    end_date = date(int(end_date), 12, 31)
-                                else:
-                                    end_date = None
-                            except:
+                                end_date = datetime.fromisoformat(end_date_str).date()
+                            except (ValueError, TypeError):
+                                logger.warning(f"Could not parse end_date '{end_date_str}'")
                                 end_date = None
+                        else:
+                            end_date = None
+                        
+                        # Check for duplicate before adding
+                        company_name = exp_data.get("company_name", "").strip()
+                        job_title = exp_data.get("job_title", "").strip()
+                        duplicate_key = (company_name.lower(), job_title.lower(), str(start_date))
+                        
+                        if duplicate_key in existing_set:
+                            logger.info(f"Skipping duplicate work experience: {company_name} - {job_title}")
+                            continue
                         
                         work_exp = WorkExperienceCreate(
                             user_id=user_id,
-                            company_name=exp_data.get("company_name", ""),
-                            job_title=exp_data.get("job_title", ""),
+                            company_name=company_name,
+                            job_title=job_title,
                             start_date=start_date,
                             end_date=end_date,
                             is_current=exp_data.get("is_current", False),
                             description=exp_data.get("description", ""),
-                            achievements=exp_data.get("achievements", []),
-                            technologies_used=exp_data.get("technologies_used", [])
+                            achievements=exp_data.get("achievements", [])
+                            # Note: technologies_used column is missing from database, skipping for now
                         )
                         await user_profile_service.add_work_experience(work_exp)
                         results["work_experience_added"] += 1
+                        
+                        # Add to existing_set to prevent duplicates within the same parsing session
+                        existing_set.add(duplicate_key)
+                        
                     except Exception as e:
                         results["errors"].append(f"Error adding work experience: {str(e)}")
             
