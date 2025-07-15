@@ -1,0 +1,5 @@
+# Selenium and web automation - Install after core
+selenium==4.15.2
+webdriver-manager==4.0.1
+beautifulsoup4==4.12.2
+lxml>=4.9.0 

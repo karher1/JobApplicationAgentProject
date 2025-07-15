@@ -1,0 +1,6 @@
+# LangChain and AI dependencies - Install after core
+langchain==0.1.0
+langchain-core>=0.1.7
+langchain-openai==0.0.5
+langgraph>=0.0.26
+langchain-community==0.0.10 

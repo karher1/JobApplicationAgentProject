@@ -1,0 +1,45 @@
+# Job Application Automation - Main Requirements
+# Core dependencies
+pydantic==2.5.0
+python-dotenv==1.0.0
+requests==2.31.0
+openai==1.30.5
+
+# FastAPI and web framework
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+
+# Database and Supabase
+sqlalchemy==2.0.23
+werkzeug==3.0.1
+supabase==1.2.0
+httpx==0.24.1
+pandas>=2.2.0
+
+# Vector database
+pinecone-client==2.2.4
+
+# LangChain and AI
+langchain==0.1.0
+langchain-core>=0.1.7
+langchain-openai==0.0.5
+langgraph>=0.0.26
+langchain-community==0.0.10
+
+# Selenium and web automation
+selenium==4.15.2
+webdriver-manager==4.0.1
+beautifulsoup4==4.12.2
+lxml>=4.9.0
+
+# Email and templates
+jinja2==3.1.6
+
+# Utilities
+python-multipart==0.0.6
+pdfplumber
+python-docx
+
+# Security and rate limiting
+slowapi==0.1.9
+redis==5.0.1

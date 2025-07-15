@@ -1,0 +1,49 @@
+{
+  "job_titles": [
+    "QA Engineer",
+    "SDET",
+    "Software Engineer in Test",
+    "QA Automation Engineer",
+    "Test Automation Engineer",
+    "Quality Assurance Engineer"
+  ],
+  "locations": [
+    "United States",
+    "Remote",
+    "San Francisco, CA",
+    "New York, NY",
+    "Austin, TX",
+    "Seattle, WA"
+  ],
+  "required_keywords": [
+    "automation",
+    "selenium",
+    "testing",
+    "cypress",
+    "pytest",
+    "playwright"
+  ],
+  "excluded_keywords": [
+    "manual testing only",
+    "principal",
+    "director",
+    "vp",
+    "vice president"
+  ],
+  "preferred_companies": [
+    "Google",
+    "Microsoft",
+    "Amazon",
+    "Apple",
+    "Meta",
+    "Netflix",
+    "Uber",
+    "Airbnb",
+    "Stripe",
+    "Shopify"
+  ],
+  "max_applications_per_run": 10,
+  "max_search_results": 100,
+  "remote_preferred": true,
+  "delay_between_applications": 30
+}

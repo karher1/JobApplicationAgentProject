@@ -1,0 +1,6 @@
+# Database and Supabase dependencies - Install after core
+sqlalchemy==2.0.23
+werkzeug==3.0.1
+supabase==1.2.0
+httpx==0.24.1
+pandas==2.1.4 
