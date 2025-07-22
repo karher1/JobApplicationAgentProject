@@ -190,14 +190,39 @@ Use clean, readable formatting without excessive markdown symbols like asterisks
 
 Be encouraging while providing honest, constructive feedback that helps users stand out in competitive job markets.""",
             
-            "interview_prep": """You are helping a user prepare for job interviews. You can:
-- Generate practice questions based on job descriptions
-- Provide tips for answering common interview questions
-- Help with company research
-- Practice behavioral and technical questions
-- Provide feedback on interview responses
+            "interview_prep": """You are an expert interview coach and former hiring manager who helps candidates excel in job interviews. You specialize in:
 
-Tailor your questions and advice to their specific role and industry.""",
+🎯 **Mock Interview Sessions**: Conduct realistic practice interviews with follow-up questions
+📋 **Question Generation**: Create tailored questions based on job descriptions and experience level
+🔍 **Answer Analysis**: Provide detailed feedback on responses using the STAR method (Situation, Task, Action, Result)
+🏢 **Company Research**: Share insights about company culture, values, and interview styles
+💼 **Role-Specific Prep**: Customize questions for different roles (technical, behavioral, leadership)
+📈 **Performance Tracking**: Help users improve their interview skills over time
+
+**Interview Formats You Support:**
+- Behavioral interviews (STAR method coaching)
+- Technical interviews (problem-solving, coding concepts)
+- System design interviews (architecture and scaling)
+- Leadership interviews (management scenarios)
+- Culture fit interviews (values alignment)
+- Case study interviews (business problem solving)
+
+**Your Coaching Style:**
+- Ask one thoughtful question at a time
+- Wait for the user's complete response before providing feedback
+- Give specific, actionable feedback with examples
+- Score responses on a 1-10 scale with clear improvement areas
+- Create realistic interview pressure while remaining supportive
+- Help users develop confident, authentic answers
+
+**Mock Interview Commands:**
+- "Start mock interview" - Begin a structured practice session
+- "Ask me a behavioral question" - Generate STAR-method questions
+- "Technical interview mode" - Focus on problem-solving questions
+- "Rate my answer" - Provide detailed feedback on responses
+- "Give me a tough question" - Challenge with difficult scenarios
+
+Start by understanding their target role, company, and experience level, then tailor your coaching accordingly.""",
             
             "career_guidance": """You are providing career guidance and planning advice. You can:
 - Analyze career progression paths
@@ -498,7 +523,27 @@ Ready to get started? You can:
 
 What would you like to work on first?"""
             elif conversation_type == "interview_prep":
-                return f"Hi {name}! 🎯 Let's get you ready for your next interview! I can help with practice questions, company research, and interview strategies. What position are you interviewing for?"
+                return f"""Hi {name}! 🎯 Welcome to your personal interview coach! I'm here to help you crush your next interview.
+
+**🚀 What I Can Do For You:**
+• **Mock Interviews**: Realistic practice sessions with detailed feedback
+• **STAR Method Coaching**: Perfect your behavioral question responses
+• **Technical Prep**: Practice coding and system design questions
+• **Company Research**: Get insights on culture and interview styles
+• **Answer Analysis**: Score your responses and suggest improvements
+• **Challenge Mode**: Test yourself with tough questions
+
+**📋 Popular Commands:**
+• "Start mock interview" - Begin a full practice session
+• "Ask me a behavioral question" - Practice STAR method
+• "Technical question" - Get coding/system design practice  
+• "Interview tips" - Learn best practices and strategies
+• "Company research [company name]" - Get specific insights
+
+**🎯 Your Personalized Prep:**
+Based on your {skill_count} skills and {user_context.get('experience_count', 0)} work experiences, I'll tailor questions to your level and background.
+
+What type of interview preparation would you like to start with? Or just tell me about the role you're interviewing for! 💪"""
             else:
                 return f"Hello {name}! 👋 I'm your AI career assistant. I can help with job searching, resume optimization, interview preparation, and career planning. What would you like to work on today?"
                 
@@ -809,8 +854,335 @@ What would you like to work on first?"""
             logger.error(f"Error formatting job results: {e}")
             return f"Found {len(jobs)} jobs, but encountered an error formatting the results. Please try again."
     
+    async def _detect_interview_prep_query(self, message: str, conversation_type: str) -> bool:
+        """Detect if a message is an interview preparation query"""
+        # If already in interview_prep mode, most messages are interview-related
+        if conversation_type == "interview_prep":
+            return True
+            
+        interview_keywords = [
+            "interview", "mock interview", "practice interview", "behavioral question", 
+            "technical question", "star method", "tell me about yourself", 
+            "weakness", "strength", "why should we hire", "interview preparation",
+            "interview practice", "rehearse", "practice questions", "interview tips",
+            "interview coaching", "mock session", "interview feedback"
+        ]
+        
+        message_lower = message.lower()
+        return any(keyword in message_lower for keyword in interview_keywords)
+    
+    async def _handle_interview_prep_query(self, message: str, conversation: Conversation) -> Optional[str]:
+        """Handle interview preparation queries with interactive mock interviews"""
+        try:
+            message_lower = message.lower()
+            
+            # Detect specific interview commands
+            if "start mock interview" in message_lower:
+                return await self._start_mock_interview(conversation)
+            elif "behavioral question" in message_lower or "star method" in message_lower:
+                return await self._generate_behavioral_question(conversation)
+            elif "technical question" in message_lower or "technical interview" in message_lower:
+                return await self._generate_technical_question(conversation)
+            elif "rate my answer" in message_lower or "feedback" in message_lower:
+                return await self._provide_interview_feedback(message, conversation)
+            elif "tough question" in message_lower or "difficult question" in message_lower:
+                return await self._generate_challenging_question(conversation)
+            elif "company research" in message_lower:
+                return await self._provide_company_insights(message, conversation)
+            elif "interview tips" in message_lower:
+                return await self._provide_interview_tips(conversation)
+            else:
+                # General interview coaching response
+                return None  # Let the general LLM handle it with the enhanced prompt
+                
+        except Exception as e:
+            logger.error(f"Error handling interview prep query: {e}")
+            return None
+    
+    async def _start_mock_interview(self, conversation: Conversation) -> str:
+        """Start a structured mock interview session"""
+        try:
+            # Get user context for personalized questions
+            user_context = conversation.context
+            
+            response = """🎯 **Mock Interview Session Started!**
+
+Welcome to your personalized mock interview. I'll act as your interviewer and provide detailed feedback after each response.
+
+**Interview Format:**
+• I'll ask one question at a time
+• Take your time to provide thoughtful answers
+• I'll give you a score (1-10) and specific feedback
+• We can focus on behavioral, technical, or mixed questions
+
+**Instructions:**
+• Answer as if this were a real interview
+• Use the STAR method for behavioral questions (Situation, Task, Action, Result)
+• Be specific and provide concrete examples
+• Don't worry about perfection - this is practice!
+
+Let's begin with an opening question:
+
+**Question 1:** "Tell me about yourself and what brings you to this role."
+
+*Take your time and provide a comprehensive answer. I'll give you detailed feedback and a score when you're ready.*"""
+
+            return response
+            
+        except Exception as e:
+            logger.error(f"Error starting mock interview: {e}")
+            return "I'd be happy to help you practice interviews! Please tell me about the role you're preparing for so I can tailor the questions."
+    
+    async def _generate_behavioral_question(self, conversation: Conversation) -> str:
+        """Generate a behavioral interview question using STAR method"""
+        try:
+            user_context = conversation.context
+            skills = user_context.get("skills", [])
+            experience_count = user_context.get("experience_count", 0)
+            
+            # Customize questions based on experience level
+            if experience_count == 0:
+                level = "entry-level"
+            elif experience_count <= 2:
+                level = "mid-level"
+            else:
+                level = "senior-level"
+            
+            prompt = f"""Generate a thoughtful behavioral interview question for a {level} candidate. 
+            The candidate has skills in: {', '.join(skills[:5]) if skills else 'general business skills'}.
+            
+            Format your response as:
+            🎯 **Behavioral Question:**
+            [Question here]
+            
+            📋 **STAR Method Reminder:**
+            • **Situation:** Set the context
+            • **Task:** Explain what needed to be done
+            • **Action:** Describe what you specifically did
+            • **Result:** Share the outcome and what you learned
+            
+            💡 **What I'm Looking For:**
+            [Brief note about what makes a strong answer to this question]"""
+            
+            messages = [
+                {"role": "system", "content": "You are an experienced interviewer creating behavioral questions."},
+                {"role": "user", "content": prompt}
+            ]
+            
+            response = await self.llm_service.chat_completion(messages, temperature=0.7, max_tokens=300)
+            return response
+            
+        except Exception as e:
+            logger.error(f"Error generating behavioral question: {e}")
+            return "Here's a behavioral question for you: 'Tell me about a time when you had to overcome a significant challenge. How did you approach it, and what was the outcome?' Use the STAR method in your response."
+    
+    async def _generate_technical_question(self, conversation: Conversation) -> str:
+        """Generate a technical interview question based on user skills"""
+        try:
+            user_context = conversation.context
+            skills = user_context.get("skills", [])
+            
+            # Focus on user's actual skills
+            technical_skills = [skill for skill in skills if any(tech in skill.lower() for tech in 
+                              ['python', 'java', 'javascript', 'react', 'sql', 'aws', 'docker', 'api', 'database'])]
+            
+            primary_skill = technical_skills[0] if technical_skills else "general programming"
+            
+            prompt = f"""Generate a thoughtful technical interview question focused on {primary_skill}.
+            The question should be appropriate for someone with these skills: {', '.join(skills[:5]) if skills else 'basic technical skills'}.
+            
+            Make it practical and realistic - something they might actually encounter in the role.
+            Don't make it too complex or academic.
+            
+            Format as:
+            💻 **Technical Question:**
+            [Question here]
+            
+            🎯 **Approach:**
+            [Brief guidance on how to tackle this question]
+            
+            ⭐ **Bonus Points:**
+            [What would make their answer exceptional]"""
+            
+            messages = [
+                {"role": "system", "content": "You are a technical interviewer creating practical, realistic questions."},
+                {"role": "user", "content": prompt}
+            ]
+            
+            response = await self.llm_service.chat_completion(messages, temperature=0.6, max_tokens=400)
+            return response
+            
+        except Exception as e:
+            logger.error(f"Error generating technical question: {e}")
+            return "💻 **Technical Question:** How would you approach debugging a performance issue in a web application? Walk me through your process step by step."
+    
+    async def _provide_interview_feedback(self, user_answer: str, conversation: Conversation) -> str:
+        """Provide detailed feedback on an interview answer"""
+        try:
+            # Get the last few messages to understand context
+            recent_messages = conversation.messages[-3:] if len(conversation.messages) >= 3 else conversation.messages
+            context = "\n".join([f"{msg.message_type}: {msg.content}" for msg in recent_messages])
+            
+            prompt = f"""As an experienced interview coach, provide detailed feedback on this interview response.
+            
+            **Context of Recent Conversation:**
+            {context}
+            
+            **Candidate's Answer:**
+            {user_answer}
+            
+            Provide feedback in this format:
+            
+            📊 **Score: X/10**
+            
+            ✅ **What Worked Well:**
+            [2-3 specific positive points]
+            
+            🔧 **Areas for Improvement:**
+            [2-3 specific suggestions]
+            
+            💡 **Enhanced Answer Example:**
+            [Show how they could strengthen their response]
+            
+            🎯 **Next Steps:**
+            [One actionable tip for their next answer]
+            
+            Be encouraging but honest. Focus on specific, actionable feedback."""
+            
+            messages = [
+                {"role": "system", "content": "You are an expert interview coach providing constructive, detailed feedback."},
+                {"role": "user", "content": prompt}
+            ]
+            
+            response = await self.llm_service.chat_completion(messages, temperature=0.3, max_tokens=500)
+            return response
+            
+        except Exception as e:
+            logger.error(f"Error providing interview feedback: {e}")
+            return "Thank you for your answer! Here's some feedback: Focus on being more specific with examples and quantify your results when possible. Use the STAR method to structure your responses clearly."
+    
+    async def _generate_challenging_question(self, conversation: Conversation) -> str:
+        """Generate a challenging interview question to test the candidate"""
+        try:
+            user_context = conversation.context
+            experience_count = user_context.get("experience_count", 0)
+            
+            prompt = f"""Generate a challenging but fair interview question for someone with {experience_count} work experiences.
+            This should be a question that really tests their problem-solving, leadership, or technical depth.
+            
+            Make it realistic - something a top-tier company might actually ask.
+            
+            Format as:
+            🔥 **Challenge Question:**
+            [Tough but fair question]
+            
+            🧠 **Why This Question Matters:**
+            [What the interviewer is really assessing]
+            
+            📝 **Structure Your Answer:**
+            [Framework for tackling this question]
+            
+            ⚡ **Time Limit:** Take 3-5 minutes to think through your response."""
+            
+            messages = [
+                {"role": "system", "content": "You are a senior interviewer known for asking insightful, challenging questions."},
+                {"role": "user", "content": prompt}
+            ]
+            
+            response = await self.llm_service.chat_completion(messages, temperature=0.8, max_tokens=400)
+            return response
+            
+        except Exception as e:
+            logger.error(f"Error generating challenging question: {e}")
+            return "🔥 **Challenge Question:** Describe a time when you had to make a difficult decision with incomplete information. How did you approach it, and what would you do differently knowing what you know now?"
+    
+    async def _provide_company_insights(self, message: str, conversation: Conversation) -> str:
+        """Provide company research and culture insights"""
+        try:
+            # Extract company name from message
+            company_mentions = []
+            common_companies = ["google", "apple", "microsoft", "amazon", "meta", "netflix", "tesla", "uber", "airbnb", "stripe"]
+            message_lower = message.lower()
+            
+            for company in common_companies:
+                if company in message_lower:
+                    company_mentions.append(company)
+            
+            target_company = company_mentions[0] if company_mentions else "the company you're interviewing with"
+            
+            prompt = f"""Provide interview preparation insights for {target_company}. Include:
+            
+            🏢 **Company Culture & Values:**
+            [What they value in candidates]
+            
+            📋 **Common Interview Format:**
+            [Typical interview process and structure]
+            
+            🎯 **What They Look For:**
+            [Key qualities and skills they prioritize]
+            
+            💬 **Sample Questions They Ask:**
+            [2-3 questions commonly asked at this company]
+            
+            🚀 **Pro Tips:**
+            [Specific advice for succeeding at this company]
+            
+            If you don't have specific information about {target_company}, provide general research guidance."""
+            
+            messages = [
+                {"role": "system", "content": "You are a career coach with insights into company interview processes."},
+                {"role": "user", "content": prompt}
+            ]
+            
+            response = await self.llm_service.chat_completion(messages, temperature=0.4, max_tokens=600)
+            return response
+            
+        except Exception as e:
+            logger.error(f"Error providing company insights: {e}")
+            return "For company research, I recommend checking their website, recent news, Glassdoor reviews, and LinkedIn posts. Focus on understanding their mission, values, and recent achievements."
+    
+    async def _provide_interview_tips(self, conversation: Conversation) -> str:
+        """Provide general interview tips and best practices"""
+        return """🎯 **Interview Success Tips**
+
+**Before the Interview:**
+• Research the company, role, and interviewer (LinkedIn)
+• Prepare 3-5 STAR method stories covering different situations
+• Practice common questions out loud (not just in your head)
+• Prepare thoughtful questions about the role and team
+• Test your tech setup for virtual interviews
+
+**During the Interview:**
+• Arrive 10-15 minutes early (but not too early)
+• Make eye contact and show enthusiasm
+• Listen carefully before answering
+• Use specific examples with measurable results
+• Ask clarifying questions if needed
+
+**After Each Question:**
+• Check if they want more detail: "Would you like me to elaborate on any part?"
+• Connect your answer to the role: "This experience prepared me for..."
+
+**Red Flags to Avoid:**
+• Speaking negatively about previous employers
+• Being vague or generic in answers
+• Not asking any questions about the role
+• Focusing only on what you'll gain, not what you'll contribute
+
+**Your Questions to Ask:**
+• "What does success look like in this role after 90 days?"
+• "What are the biggest challenges facing the team right now?"
+• "How does this role contribute to the company's goals?"
+
+**Follow-up:**
+• Send a thank-you email within 24 hours
+• Reference specific conversation points
+• Reiterate your interest and key qualifications
+
+Ready to practice? Ask me to start a mock interview or generate specific questions! 🚀"""
+    
     async def _generate_response(self, conversation: Conversation) -> str:
-        """Generate AI response using LLM service with job search integration"""
+        """Generate AI response using LLM service with job search and interview prep integration"""
         try:
             # Get the latest user message
             latest_message = conversation.messages[-1]
@@ -820,6 +1192,13 @@ What would you like to work on first?"""
             job_search_result = await self._handle_job_search_query(user_message, conversation.user_id)
             if job_search_result:
                 return job_search_result
+            
+            # Check if this is an interview preparation query
+            # Note: conversation type is not stored in context, so we'll detect based on content
+            if await self._detect_interview_prep_query(user_message, ""):
+                interview_result = await self._handle_interview_prep_query(user_message, conversation)
+                if interview_result:
+                    return interview_result
             
             # Prepare messages for LLM (last 10 messages for context)
             recent_messages = conversation.messages[-10:]

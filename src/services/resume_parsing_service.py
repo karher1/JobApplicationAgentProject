@@ -4,6 +4,7 @@ import asyncio
 from typing import List, Optional, Dict, Any
 from pathlib import Path
 import re
+import json
 from datetime import datetime, date
 
 from src.models.user_profile import (
@@ -12,14 +13,18 @@ from src.models.user_profile import (
     Skill, UserSkillCreate,
     Resume
 )
+from src.services.llm_service import LLMService
 
 logger = logging.getLogger(__name__)
 
 class ResumeParsingService:
-    """Service for parsing resumes and extracting structured information"""
+    """Enhanced service for parsing resumes with AI and OCR capabilities"""
     
     def __init__(self):
         self.supported_formats = ['.pdf', '.doc', '.docx', '.txt']
+        self.llm_service = LLMService()
+        self.use_ai_parsing = True
+        self.use_ocr = True
         
     async def parse_resume(self, resume: Resume) -> Dict[str, Any]:
         """Parse a resume file and extract structured information"""
@@ -67,7 +72,7 @@ class ResumeParsingService:
                     return f.read()
             
             elif file_extension == '.pdf':
-                # Extract text from PDF
+                # Extract text from PDF with OCR fallback
                 try:
                     import pdfplumber
                     with pdfplumber.open(file_path) as pdf:
@@ -76,9 +81,19 @@ class ResumeParsingService:
                             page_text = page.extract_text()
                             if page_text:
                                 text += page_text + "\n"
+                        
+                        # If no text extracted or very little text, try OCR
+                        if self.use_ocr and (not text or len(text.strip()) < 100):
+                            logger.info("PDF appears to be scanned, attempting OCR...")
+                            ocr_text = await self._extract_text_with_ocr(file_path)
+                            if ocr_text and len(ocr_text) > len(text):
+                                text = ocr_text
+                        
                         return text
                 except ImportError:
-                    logger.warning("pdfplumber not available, falling back to simple text extraction")
+                    logger.warning("pdfplumber not available, trying OCR if enabled")
+                    if self.use_ocr:
+                        return await self._extract_text_with_ocr(file_path)
                     return ""
             
             elif file_extension in ['.doc', '.docx']:
@@ -100,14 +115,55 @@ class ResumeParsingService:
             logger.error(f"Error extracting text from {file_path}: {e}")
             return ""
     
+    async def _extract_text_with_ocr(self, file_path: Path) -> str:
+        """Extract text using OCR for scanned documents"""
+        try:
+            # Try to use pytesseract with pdf2image
+            try:
+                from pdf2image import convert_from_path
+                import pytesseract
+                from PIL import Image
+                
+                # Convert PDF to images
+                pages = convert_from_path(file_path, dpi=300)
+                text = ""
+                
+                for page in pages:
+                    # Extract text from each page image
+                    page_text = pytesseract.image_to_string(page, lang='eng')
+                    text += page_text + "\n"
+                
+                logger.info(f"OCR extracted {len(text)} characters")
+                return text
+                
+            except ImportError as e:
+                logger.warning(f"OCR dependencies not available: {e}")
+                return ""
+                
+        except Exception as e:
+            logger.error(f"Error during OCR extraction: {e}")
+            return ""
+    
     async def _parse_text_content(self, text_content: str) -> Dict[str, Any]:
-        """Parse text content and extract structured information"""
+        """Parse text content and extract structured information using AI and fallback methods"""
         try:
             # Clean and normalize text
             text = self._clean_text(text_content)
             logger.info(f"Text after cleaning (first 300 chars): {text[:300]}")
             
-            # Extract different sections
+            # Try AI-powered parsing first
+            if self.use_ai_parsing:
+                try:
+                    ai_result = await self._ai_parse_resume(text)
+                    if ai_result and self._validate_parsed_data(ai_result):
+                        logger.info("Successfully parsed resume using AI")
+                        return ai_result
+                    else:
+                        logger.warning("AI parsing failed or returned invalid data, falling back to regex parsing")
+                except Exception as e:
+                    logger.warning(f"AI parsing failed: {e}, falling back to regex parsing")
+            
+            # Fallback to regex-based parsing
             skills = self._extract_skills(text)
             work_experience = self._extract_work_experience(text)
             education = self._extract_education(text)
@@ -511,6 +567,110 @@ class ResumeParsingService:
         
         # Return None for unparseable dates (don't use fallback)
         return None
+    
+    async def _ai_parse_resume(self, text: str) -> Dict[str, Any]:
+        """Use AI to parse resume text into structured data"""
+        try:
+            prompt = f"""
+Extract structured information from this resume text and return it as JSON.
+
+IMPORTANT: Return ONLY valid JSON, no additional text or formatting.
+
+Expected JSON structure:
+{{
+    "skills": ["skill1", "skill2", ...],
+    "work_experience": [
+        {{
+            "company_name": "Company Name",
+            "job_title": "Job Title",
+            "start_date": "YYYY-MM-DD or YYYY-MM or YYYY",
+            "end_date": "YYYY-MM-DD or YYYY-MM or YYYY or null",
+            "is_current": true/false,
+            "description": "Job description and achievements",
+            "achievements": ["achievement1", "achievement2"],
+            "technologies_used": ["tech1", "tech2"]
+        }}
+    ],
+    "education": [
+        {{
+            "institution_name": "University Name",
+            "degree": "Degree Type",
+            "field_of_study": "Field of Study",
+            "start_date": "YYYY-MM-DD or YYYY",
+            "end_date": "YYYY-MM-DD or YYYY or null",
+            "is_current": true/false,
+            "gpa": null or number,
+            "description": "Additional education details"
+        }}
+    ],
+    "contact_info": {{
+        "email": "email@example.com",
+        "phone": "phone number",
+        "linkedin_url": "linkedin profile url",
+        "github_url": "github profile url"
+    }}
+}}
+
+Guidelines:
+- Extract ALL skills mentioned (programming languages, frameworks, tools, soft skills)
+- For dates, prefer "Month YYYY" format when available (e.g., "March 2024")
+- If only year is available, use "YYYY" format
+- Set is_current to true for current positions/education
+- Extract achievements as separate bullet points
+- Include all technologies/tools mentioned for each job
+- Be thorough but accurate
+
+Resume text:
+{text}
+"""
+            
+            response = await self.llm_service.chat_completion(
+                messages=[{"role": "user", "content": prompt}],
+                temperature=0.1  # Low temperature for consistency
+            )
+            
+            # Parse the JSON response
+            try:
+                parsed_data = json.loads(response)
+                return parsed_data
+            except json.JSONDecodeError as e:
+                logger.error(f"AI returned invalid JSON: {e}")
+                # Try to extract JSON from response if it's wrapped in text
+                import re
+                json_match = re.search(r'\{.*\}', response, re.DOTALL)
+                if json_match:
+                    try:
+                        parsed_data = json.loads(json_match.group(0))
+                        return parsed_data
+                    except json.JSONDecodeError:
+                        pass
+                return None
+                
+        except Exception as e:
+            logger.error(f"Error in AI parsing: {e}")
+            return None
+    
+    def _validate_parsed_data(self, data: Dict[str, Any]) -> bool:
+        """Validate that parsed data has the expected structure"""
+        if not isinstance(data, dict):
+            return False
+        
+        required_keys = ["skills", "work_experience", "education", "contact_info"]
+        for key in required_keys:
+            if key not in data:
+                return False
+        
+        # Validate data types
+        if not isinstance(data["skills"], list):
+            return False
+        if not isinstance(data["work_experience"], list):
+            return False
+        if not isinstance(data["education"], list):
+            return False
+        if not isinstance(data["contact_info"], dict):
+            return False
+        
+        return True
     
     async def populate_user_profile_from_resume(self, user_id: int, parsed_data: Dict[str, Any], user_profile_service) -> Dict[str, Any]:
         """Populate user profile with parsed resume data"""

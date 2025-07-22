@@ -1,24 +1,24 @@
-# Job Application Automation System
+# Job Application Agent
 
-A comprehensive AI-powered platform that automates the entire job search and application process. This full-stack application includes a web interface, REST API, Chrome browser extension, and intelligent automation features to streamline job hunting.
+A comprehensive AI-powered platform for job search, resume analysis, and career assistance. This full-stack application includes a modern web interface, robust REST API, and intelligent automation features to streamline job hunting.
 
 ## 🚀 Features
 
 ### ✅ **Core Components**
 - **🌐 Web Application** - Next.js frontend with modern UI components
 - **⚡ REST API** - FastAPI backend with comprehensive endpoints
-- **🔌 Browser Extension** - Chrome extension for automated form filling
 - **🤖 AI Integration** - OpenAI/Anthropic LLM integration for content generation
 - **📊 Analytics Dashboard** - Job search statistics and application tracking
+- **💬 Chat Interface** - Interactive career guidance and job search assistance
 
 ### 🎯 **Key Capabilities**
 - **Smart Job Search** - Multi-platform job scraping from 50+ companies (Stripe, Figma, Linear, etc.)
 - **Intelligent Matching** - Vector-based job matching using user profiles and preferences
 - **Resume Parsing** - Automatic extraction of skills, experience, and education from resumes
-- **Auto-Application** - Automated form filling and job application submission
+- **Resume Analysis** - AI-powered resume review and improvement suggestions
 - **Content Generation** - AI-powered cover letters and application responses
 - **Real-time Chat** - Interactive chatbot for career guidance and job search assistance
-- **Notification System** - Daily digest emails with personalized job recommendations
+- **Application Tracking** - Monitor job application status and history
 
 ## 📁 Project Structure
 
@@ -42,11 +42,9 @@ JobApplicationAgent/
 │   ├── 📁 models/                   # Pydantic data models
 │   ├── 📁 core/                     # Configuration and settings
 │   └── 📁 utils/                    # Utility functions
-├── 📁 browser-extension/            # Chrome Extension
-│   ├── manifest.json               # Extension manifest
-│   ├── popup.html                  # Extension popup interface
-│   ├── background.js               # Service worker
-│   └── content-script.js           # Page interaction scripts
+├── 📁 bookmarklet/                  # Auto-fill bookmarklet (experimental)
+│   ├── bookmarklet.html            # Installation page
+│   └── job-agent-bookmarklet.js    # Bookmarklet code
 ├── 📁 database/                     # Database management
 │   ├── 📁 schemas/                  # SQL schema definitions
 │   └── 📁 migrations/               # Database migrations
@@ -190,19 +188,17 @@ POST /api/resume/review
 POST /api/ai/generate-content
 ```
 
-## 🔌 Browser Extension
+## 📱 Application Pages
 
-### Installation
-1. Open Chrome and navigate to `chrome://extensions/`
-2. Enable "Developer mode"
-3. Click "Load unpacked" and select the `browser-extension/` directory
-4. The extension icon will appear in your browser toolbar
-
-### Features
-- **Auto-fill Applications**: Automatically populate job application forms
-- **Form Detection**: Intelligent form field recognition and mapping
-- **Profile Integration**: Sync with your user profile for consistent information
-- **Application Tracking**: Track applications submitted through the extension
+### Available Pages
+- **🏠 Dashboard**: Overview of job search activity and statistics
+- **🔍 Job Search**: Multi-platform job search with advanced filters
+- **📋 Job Listings**: Browse and manage saved job opportunities
+- **📄 Applications**: Track submitted applications and their status
+- **👤 Profile**: Manage personal information and preferences
+- **📝 Resume Analysis**: AI-powered resume review and suggestions
+- **💬 Chat**: Interactive career guidance and job search assistance
+- **📊 Analytics**: Detailed job search metrics and insights
 
 ## 🧪 Testing & Development
 
@@ -374,13 +370,18 @@ LOG_LEVEL=WARNING
 **Key Achievements**:
 - ✅ Multi-platform job scraping (50+ companies)
 - ✅ Resume parsing and profile management
-- ✅ AI-powered content generation
-- ✅ Browser extension for form automation
-- ✅ Real-time chat interface
+- ✅ AI-powered content generation and resume analysis
+- ✅ Real-time chat interface with career guidance
 - ✅ Comprehensive API with 30+ endpoints
+- ✅ Modern Next.js frontend with multiple application pages
+- ✅ Authentication and user profile management
 
-**Roadmap**:
+**Current Focus**:
 - 🔄 Enhanced UI/UX improvements
 - 🔄 Advanced analytics dashboard
+- 🔄 Application tracking and management features
+
+**Future Roadmap**:
 - 📋 Mobile application
+- 📋 Auto-fill browser integration (userscript/extension)
 - 📋 Enterprise features and scaling

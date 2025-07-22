@@ -29,6 +29,7 @@ from src.services.resume_parsing_service import ResumeParsingService
 from src.api.routes.job_search import router as job_search_router
 from src.api.routes.resume_review import router as resume_review_router
 from src.api.routes.chatbot import router as chatbot_router
+from src.api.routes.resume_analysis import router as resume_analysis_router
 from src.api.middleware.auth_middleware import get_current_user_id
 from src.models.schemas import (
     JobSearchRequest, JobSearchResponse, JobPosition,
@@ -110,6 +111,7 @@ app.add_middleware(
 app.include_router(job_search_router, prefix="/api/v2")
 app.include_router(resume_review_router, prefix="/api")
 app.include_router(chatbot_router, prefix="/api")
+app.include_router(resume_analysis_router)
 
 # Initialize services
 database_service = DatabaseService()

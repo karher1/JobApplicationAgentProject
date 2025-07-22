@@ -68,6 +68,9 @@ export default function RootLayout({
                 <Link href="/profile" className="text-white/70 hover:text-white transition-colors font-medium">
                   Profile
                 </Link>
+                <Link href="/resume-analysis" className="text-white/70 hover:text-white transition-colors font-medium">
+                  Resume Analysis
+                </Link>
                 <Link href="/applications" className="text-white/70 hover:text-white transition-colors font-medium">
                   Applications
                 </Link>
