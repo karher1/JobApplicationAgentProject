@@ -1,6 +1,6 @@
 "use client";
 
-import { Card, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, useDisclosure } from "@heroui/react";
+import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, useDisclosure } from "@heroui/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
@@ -31,7 +31,7 @@ export default function HomePage() {
     router.push(path);
   };
 
-  const calculateProfileCompletion = (profile: any) => {
+  const calculateProfileCompletion = (profile: Record<string, unknown> | null) => {
     if (!profile) {
       return {
         isComplete: false,
@@ -58,31 +58,36 @@ export default function HomePage() {
 
     requiredFields.forEach(({ field, label }) => {
       if (field === 'skills') {
-        if (!profile.skills || profile.skills.length < 3) {
+        const skills = profile.skills as unknown[] | undefined;
+        if (!skills || skills.length < 3) {
           missingFields.push(label);
         } else {
           completedFields++;
         }
       } else if (field === 'work_experience') {
-        if (!profile.work_experience || profile.work_experience.length === 0) {
+        const workExp = profile.work_experience as unknown[] | undefined;
+        if (!workExp || workExp.length === 0) {
           missingFields.push(label);
         } else {
           completedFields++;
         }
       } else if (field === 'education') {
-        if (!profile.education || profile.education.length === 0) {
+        const education = profile.education as unknown[] | undefined;
+        if (!education || education.length === 0) {
           missingFields.push(label);
         } else {
           completedFields++;
         }
       } else if (field === 'resume') {
-        if (!profile.resume || !profile.resume.file_path) {
+        const resume = profile.resume as { file_path?: string } | undefined;
+        if (!resume || !resume.file_path) {
           missingFields.push(label);
         } else {
           completedFields++;
         }
       } else {
-        if (!profile[field] || profile[field].trim() === '') {
+        const fieldValue = profile[field] as string | undefined;
+        if (!fieldValue || fieldValue.trim() === '') {
           missingFields.push(label);
         } else {
           completedFields++;
@@ -111,7 +116,7 @@ export default function HomePage() {
           // Load profile completion status
           try {
             const profile = await userProfileAPI.getUserProfile(token.user_id);
-            const completion = calculateProfileCompletion(profile);
+            const completion = calculateProfileCompletion(profile as unknown as Record<string, unknown>);
             setProfileCompletion(completion);
           } catch (error) {
             console.error('Error loading profile:', error);
@@ -188,7 +193,7 @@ export default function HomePage() {
     return "Competitive salary";
   };
 
-  const calculateMatch = (job: JobPosition, userSkills?: string[]) => {
+  const calculateMatch = () => {
     // Simple match calculation based on requirements overlap
     // In real implementation, this would be calculated by the backend
     return Math.floor(Math.random() * 20) + 80; // 80-99% for demo
@@ -284,7 +289,7 @@ export default function HomePage() {
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-white">🎯 Recommended for You</h3>
               <span className="px-3 py-1 bg-green-500/20 text-green-400 text-sm rounded-full border border-green-500/30">
-                {calculateMatch(jobRecommendations[currentJobIndex])}% Match
+                {calculateMatch()}% Match
               </span>
             </div>
             
@@ -450,7 +455,7 @@ export default function HomePage() {
                       💰 {formatSalary(selectedJob.salary_min, selectedJob.salary_max)}
                     </span>
                     <span className="flex items-center gap-1 px-2 py-1 bg-green-500/20 text-green-400 rounded-full text-sm">
-                      {calculateMatch(selectedJob)}% Match
+                      {calculateMatch()}% Match
                     </span>
                   </div>
                 </div>

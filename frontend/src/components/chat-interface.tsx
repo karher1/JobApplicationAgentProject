@@ -23,16 +23,11 @@ import {
   MessageCircle, 
   Bot, 
   User, 
-  RotateCcw, 
-  Trash2, 
   Settings,
-  Clock,
   CheckCircle,
   XCircle,
   Search,
-  FileText,
-  Briefcase,
-  Zap
+  FileText
 } from 'lucide-react';
 import { 
   chatbotAPI, 
@@ -364,9 +359,9 @@ Use the buttons below to view or download your optimized resume!`,
       } else {
         setError('Resume analysis failed. Please try again.');
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       setIsUploading(false);
-      setError(err.message || 'Resume analysis failed.');
+      setError(err instanceof Error ? err.message : 'Resume analysis failed.');
     }
   };
 
@@ -385,9 +380,9 @@ Use the buttons below to view or download your optimized resume!`,
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
       setIsUploading(false);
-    } catch (err: any) {
+    } catch (err: unknown) {
       setIsUploading(false);
-      setError(err.message || 'Download failed.');
+      setError(err instanceof Error ? err.message : 'Download failed.');
     }
   };
 

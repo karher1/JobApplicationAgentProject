@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Card, CardBody, CardHeader, Button, Chip, Spinner, Pagination, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Textarea } from '@heroui/react';
-import { pendingApplicationAPI, PendingApplication, PendingApplicationListResponse } from '@/lib/api';
+import { Card, CardBody, Button, Chip, Spinner, Pagination, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Textarea } from '@heroui/react';
+import { pendingApplicationAPI, PendingApplication } from '@/lib/api';
 
 export default function ApplicationsPage() {
   const [applications, setApplications] = useState<PendingApplication[]>([]);
@@ -74,7 +74,7 @@ export default function ApplicationsPage() {
     }
   };
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status: string): 'default' | 'primary' | 'secondary' | 'success' | 'warning' | 'danger' => {
     switch (status.toLowerCase()) {
       case 'pending': return 'warning';
       case 'approved': return 'success';
@@ -84,7 +84,7 @@ export default function ApplicationsPage() {
     }
   };
 
-  const getPriorityColor = (priority: string) => {
+  const getPriorityColor = (priority: string): 'default' | 'primary' | 'secondary' | 'success' | 'warning' | 'danger' => {
     switch (priority.toLowerCase()) {
       case 'high': return 'danger';
       case 'medium': return 'warning';
@@ -169,10 +169,10 @@ export default function ApplicationsPage() {
                           </div>
                         </div>
                         <div className="flex flex-col gap-2">
-                          <Chip color={getStatusColor(application.status) as any} size="sm">
+                          <Chip color={getStatusColor(application.status)} size="sm">
                             {application.status}
                           </Chip>
-                          <Chip color={getPriorityColor(application.priority) as any} size="sm">
+                          <Chip color={getPriorityColor(application.priority)} size="sm">
                             {application.priority}
                           </Chip>
                         </div>
@@ -295,7 +295,7 @@ export default function ApplicationsPage() {
                                          <Textarea
                        placeholder="Add notes about your decision..."
                        value={reviewNotes}
-                       onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setReviewNotes(e.target.value)}
+                       onValueChange={(value) => setReviewNotes(value)}
                        className="bg-white/5"
                      />
                   </div>

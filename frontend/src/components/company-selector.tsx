@@ -332,7 +332,7 @@ export default function CompanySelector({
               ))
             ) : (
               <div className="px-4 py-2 text-gray-500 text-sm">
-                No companies found matching "{searchTerm}"
+                No companies found matching &quot;{searchTerm}&quot;
               </div>
             )}
           </div>

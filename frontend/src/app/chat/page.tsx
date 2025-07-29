@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { tokenUtils } from '@/lib/auth-api';
 import ChatInterface from '@/components/chat-interface';
 
 export default function ChatPage() {

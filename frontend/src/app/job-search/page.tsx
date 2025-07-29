@@ -84,7 +84,6 @@ export default function JobSearchPage() {
     job_boards: [],
     remote_only: false,
   });
-  const [currentPage, setCurrentPage] = useState(1);
   const [totalJobs, setTotalJobs] = useState(0);
   const [showCacheManager, setShowCacheManager] = useState(false);
   

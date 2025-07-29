@@ -7,8 +7,7 @@ import {
   ExclamationCircleIcon, 
   ChartBarIcon,
   LightBulbIcon,
-  SparklesIcon,
-  DocumentTextIcon 
+  SparklesIcon
 } from '@heroicons/react/24/outline';
 
 interface ResumeAnalysisResults {
@@ -38,6 +37,19 @@ interface ResumeAnalysisResults {
   }>;
 }
 
+interface OptimizationResult {
+  original_score: number;
+  optimized_score: number;
+  original_content: string;
+  optimized_content: string;
+  improvements: string[];
+  changes: string[];
+  score_improvement: number;
+  improvements_made: string[];
+  keyword_additions: string[];
+  optimized_resume: string;
+}
+
 
 export default function ResumeAnalysisPage() {
   const [resumeText, setResumeText] = useState('');
@@ -46,7 +58,7 @@ export default function ResumeAnalysisPage() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [activeTab, setActiveTab] = useState<'analyze' | 'optimize'>('analyze');
-  const [optimizationResult, setOptimizationResult] = useState<any>(null);
+  const [optimizationResult, setOptimizationResult] = useState<OptimizationResult | null>(null);
   const [isOptimizing, setIsOptimizing] = useState(false);
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {

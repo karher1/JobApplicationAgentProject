@@ -193,7 +193,7 @@ export default function AnalyticsPage() {
               <div className="bg-white/10 p-4 rounded-lg">
                 <h4 className="text-white font-semibold mb-2">Search Efficiency</h4>
                 <p className="text-gray-300 text-sm">
-                  You're finding an average of {searchStats.average_jobs_per_search.toFixed(1)} jobs per search.
+                  You&apos;re finding an average of {searchStats.average_jobs_per_search.toFixed(1)} jobs per search.
                   {searchStats.average_jobs_per_search > 10 ? ' Great job targeting!' : ' Consider broadening your search criteria.'}
                 </p>
               </div>

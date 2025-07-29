@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Card, CardBody, CardHeader, Button, Spinner, Chip } from "@heroui/react";
-import { cacheAPI, CacheStats, CacheInfo } from '@/lib/api';
+import { Card, CardBody, CardHeader, Button, Spinner } from "@heroui/react";
+import { cacheAPI, CacheInfo } from '@/lib/api';
 
 export default function CacheManager() {
   const [cacheInfo, setCacheInfo] = useState<CacheInfo | null>(null);

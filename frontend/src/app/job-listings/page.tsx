@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import { 
   Card, 
   CardBody, 
-  CardHeader, 
   Button, 
   Chip, 
   Input, 
@@ -14,11 +13,10 @@ import {
   Pagination,
   Spinner,
   Badge,
-  Divider,
   Avatar,
   Link
 } from "@heroui/react";
-import { SearchIcon, FilterIcon, MapPinIcon, BuildingIcon, ClockIcon, EyeIcon, ExternalLinkIcon } from 'lucide-react';
+import { SearchIcon, MapPinIcon, BuildingIcon, ClockIcon, EyeIcon, ExternalLinkIcon } from 'lucide-react';
 import { jobSearchAPI, JobPosition } from '@/lib/api';
 
 export default function JobListingsPage() {
@@ -55,12 +53,12 @@ export default function JobListingsPage() {
     }
   };
 
-  const getStatusColor = (job: JobPosition): "default" | "primary" | "secondary" | "success" | "warning" | "danger" => {
+  const getStatusColor = (): "default" | "primary" | "secondary" | "success" | "warning" | "danger" => {
     // Since we don't have status in JobPosition, we'll use a default
     return 'default';
   };
 
-  const getStatusText = (job: JobPosition) => {
+  const getStatusText = () => {
     // Since we don't have status in JobPosition, we'll use a default
     return 'Available';
   };
@@ -262,8 +260,8 @@ export default function JobListingsPage() {
                       
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <Badge color={getStatusColor(job)} variant="flat">
-                            {getStatusText(job)}
+                          <Badge color={getStatusColor()} variant="flat">
+                            {getStatusText()}
                           </Badge>
                           <span className="text-xs text-gray-500">
                             Posted {formatDate(job.posted_date)}

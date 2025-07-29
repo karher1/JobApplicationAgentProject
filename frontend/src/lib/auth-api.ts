@@ -146,7 +146,7 @@ export const tokenUtils = {
   },
 
   // Get authorization header for API requests
-  getAuthHeader(): { Authorization: string } | {} {
+  getAuthHeader(): { Authorization: string } | Record<string, never> {
     const token = this.getToken();
     if (token && !this.isTokenExpired(token)) {
       return { Authorization: `Bearer ${token.access_token}` };

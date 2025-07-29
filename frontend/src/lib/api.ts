@@ -622,12 +622,12 @@ export const digestAPI = {
   },
 
   // Get digest preferences
-  async getDigestPreferences(userId: number): Promise<any> {
+  async getDigestPreferences(userId: number): Promise<Record<string, unknown>> {
     return apiCall(`/api/v1/digest/preferences/${userId}`);
   },
 
   // Update digest preferences
-  async updateDigestPreferences(userId: number, preferences: any): Promise<any> {
+  async updateDigestPreferences(userId: number, preferences: Record<string, unknown>): Promise<Record<string, unknown>> {
     return apiCall(`/api/v1/digest/preferences/${userId}`, {
       method: 'PUT',
       body: JSON.stringify(preferences),
@@ -676,7 +676,7 @@ export interface ChatMessage {
   message_type: 'user' | 'assistant' | 'system';
   content: string;
   timestamp: string;
-  metadata?: any;
+  metadata?: Record<string, unknown>;
 }
 
 export interface ChatConversation {

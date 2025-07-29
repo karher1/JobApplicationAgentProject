@@ -31,8 +31,9 @@ class AIContentService:
         """Check the health of the AI content service"""
         try:
             # Test a simple generation to ensure service is working
-            test_result = await self.llm_service.generate_response(
-                "Say 'AI service is healthy' in exactly those words."
+            test_result = await self.llm_service.chat_completion(
+                messages=[{"role": "user", "content": "Say 'AI service is healthy' in exactly those words."}],
+                max_tokens=20
             )
             
             is_healthy = "ai service is healthy" in test_result.lower()

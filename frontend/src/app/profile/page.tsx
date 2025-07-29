@@ -205,9 +205,10 @@ export default function ProfilePage() {
       try {
         // Try to update first
         await userProfileAPI.updateUserPreferences(userId, updatedPreferences);
-      } catch (updateError: any) {
+      } catch (updateError: unknown) {
         // If update fails (404), try to create preferences
-        if (updateError.message?.includes('404') || updateError.message?.includes('not found')) {
+        const errorMessage = updateError instanceof Error ? updateError.message : '';
+        if (errorMessage.includes('404') || errorMessage.includes('not found')) {
           console.log('Preferences not found, creating new preferences...');
           await userProfileAPI.createUserPreferences(userId, {
             ...updatedPreferences,
